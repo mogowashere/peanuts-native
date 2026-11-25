@@ -31,6 +31,7 @@ public final class SettingsHelp {
         put(m, "DLC folder", "Another folder with DLC as NSP or NSZ files, matched to their games by title ID. Hold the row to forget the folder.", "Not set");
         put(m, "Build folders", "Where new builds are written, on the phone or on an SD card. The first folder is the default, and a game's sheet can pick another.", null);
         put(m, "Folders", "One game's folders: where its game files, its pack and its saves are. With more than one game, it asks which game first.", null);
+        put(m, "Linked cheats folder", "A load folder that Eden Cheats Manager installs cheats into. They show in each game's Mods & Cheats, off until you switch them on, and leave when you delete them there. Select the same folder in Eden Cheats Manager.", "Off");
         put(m, "Rescan", "Reads the folders again, for games you added or removed while the app was open.", null);
         put(m, "Free up space", "Deletes the original dump of a game that is built already. The game keeps playing from its build. Keep the original while a later update may come: an update needs it.", null);
         put(m, "Storage", "Finds leftovers and old files the app no longer needs, and removes the ones you tick. Saves are never listed.", null);

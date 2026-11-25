@@ -853,6 +853,16 @@ Open the game's page › **Mods & Cheats**. Cheats that come with the app are li
 
 While you play, the in-game panel has a **Mods** tab with the same switches, each with its state (**Running**, the buttons it waits for, **Not possible here** or **Next start**). A cheat that sets a number has a field to change it; the cheat file itself is never changed. Settings › Controls › **Mods tab** turns the tab off.
 
+### Can Eden Cheats Manager install cheats for Peanuts Native?
+
+Yes, through a linked cheats folder. Settings › Library › **Linked cheats folder** › **Use PeanutsNative/load** makes `Internal storage/PeanutsNative/load` (or pick another folder named `load`), and the app then needs All files access. In Eden Cheats Manager, select that same `load` folder and install cheats as usual.
+
+- A set of cheats installed there shows in the game's **Mods & Cheats** as **From your linked folder**, its cheats off until you switch them on. Your switches stay when the file is updated there.
+- Deleting it in Eden Cheats Manager removes it here too. A linked set has no **Remove** here: it would come back at the next look; turn it off instead.
+- The folder is read when the game starts and when Mods & Cheats opens, so a running game takes a change at its next start.
+- The app also writes a `<title ID>` folder for each game and `peanuts-library.json` into the folder, so Eden Cheats Manager lists your games and their versions ([CHEAT-LINK.md](CHEAT-LINK.md)).
+- A folder that cannot be read (an SD card taken out) changes nothing: the cheats already in the app stay.
+
 ## Troubleshooting
 
 ### The game crashes at start or shows a black screen. What should I check?

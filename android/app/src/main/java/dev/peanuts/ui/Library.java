@@ -361,6 +361,25 @@ public final class Library {
         current.scan();
     }
 
+    /** The linked cheats folder set now: the games of the last scan written into it, on a thread of its own (shared storage) */
+    static void writeCheatLink(Context c) {
+        List<LibraryScanner.Title> t = lastTitles;
+        Context app = c.getApplicationContext();
+        new Thread(() -> writeCheatLink(app, t), "peanuts-cheat-link").start();
+    }
+
+    /** The games Peanuts can build or play (a profile), each with its pack when built, as the linked folder's peanuts-library.json lists them */
+    private static void writeCheatLink(Context c, List<LibraryScanner.Title> titles) {
+        if (PeanutsPrefs.cheatLinkDir(c) == null) return;
+        List<dev.peanuts.mods.CheatLink.Game> games = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (LibraryScanner.Title x : titles) {
+            if (x.status == LibraryScanner.Status.NO_PROFILE || !seen.add(x.titleId)) continue;
+            games.add(new dev.peanuts.mods.CheatLink.Game(x.titleId, x.name, x.packDir == null ? null : x.packDir.getPath(), x.status == LibraryScanner.Status.READY));
+        }
+        dev.peanuts.mods.CheatLink.writeLibrary(c, games);
+    }
+
     /** Something the library shows changed (a folder set, keys added): drawn again, and scanned when that is new */
     static void changed(Activity a) {
         if (current == null || current.a != a) return;
@@ -448,6 +467,7 @@ public final class Library {
                     if (box != null && box.isAttachedToWindow()) refresh.run(); else render();
                 });
             }
+            writeCheatLink(a, t);   // the linked cheats folder learns the games (dev.peanuts.mods.CheatLink): quiet when none is set
             for (LibraryScanner.Title x : t)   // the fonts and build id every ready game's env needs (GameEnv)
                 if (x.status == LibraryScanner.Status.READY && x.launch != null) { GameEnv.ensureFonts(a, x.titleId); GameEnv.ensureBuildId(a, x.titleId, x.launch); }
         } catch (RuntimeException e) {   // a failed scan must not leave the library "scanning" for good

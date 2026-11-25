@@ -116,6 +116,11 @@ public final class PeanutsPrefs {
 
     private static final java.util.regex.Pattern VARIANT_ID = java.util.regex.Pattern.compile("([0-9A-Fa-f]{16})-mod-([0-9A-Fa-f]+)");
 
+    /** Settings › Library › Linked cheats folder: a /storage path in Eden's load layout that another app (Eden Cheats Manager) writes cheats into, which each
+     *  game's Mods &amp; Cheats then lists (dev.peanuts.mods.CheatLink). null (default): none */
+    public static String cheatLinkDir(Context c) { return of(c).getString("cheat_link_dir", null); }
+    public static void cheatLinkDir(Context c, String p) { put(c, "cheat_link_dir", p); }
+
     public static boolean setupDone(Context c) { return of(c).getBoolean("setup_done", false); }
     public static void setupDone(Context c, boolean on) { of(c).edit().putBoolean("setup_done", on).apply(); }
 

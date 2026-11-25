@@ -2796,3 +2796,11 @@ Left as they were: the hunks the check also flags that were unmarked before 0.1.
 `dm/games/0100A6301214E000/game.tsv`, `dm/games/game.py`, `hle_nvn.c` `nvnWindowGetPresentInterval`, `vka_tex.c` (one line), `dm/host/dm.h`,
 `hle_fpslock.c` `limit_raw`, `loader.c` (two lines), `dm/host/tests/t_android_smap.c`, `dm/tools/docs_patches.py`, and the tests `test_android_soc.py`,
 `test_fpslocker_plan.py`, `test_game_profile.py`, `test_option_patch.py`, `test_vka_tex_registration.py`.
+
+### The linked cheats folder (2026-11-25)
+
+Eden Cheats Manager can install cheats into a folder Peanuts Native keeps in step with each game's cheat sources ([peanuts/docs/CHEAT-LINK.md](docs/CHEAT-LINK.md)).
+No upstream file changed: the new code is in `dev/peanuts/mods/` (`CheatFolderSync.java`, `CheatLink.java`, the JVM test `CheatFolderSyncJvmTest.java`), and
+the edited files are Peanuts' own (`dev/nxnative/android/CheatsBridge.java`, a Peanuts file in upstream's package, gets one `PEANUTS` line in `wanted`;
+`PeanutsPrefs.java`, `dev/peanuts/mods/CheatsPage.java`, `dev/peanuts/ui/Library.java`, `LibrarySettings.java`, `SettingsHelp.java`, `SettingsSections.java`).
+Tests: `peanuts/tests/test_cheat_link.py`.

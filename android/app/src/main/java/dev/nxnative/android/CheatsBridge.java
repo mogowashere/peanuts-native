@@ -142,6 +142,7 @@ public final class CheatsBridge {
             android.util.Log.w("peanuts", "cheats: " + titleId + ": the earlier state could not be moved: " + e);
             return master;
         }
+        dev.peanuts.mods.CheatLink.sync(c, titleId);   // PEANUTS: the linked cheats folder
         if (Boolean.TRUE.equals(CheatSources.appEnabled(folder))) return true;
         for (CheatSources.Source s : CheatSources.list(folder)) if (s.enabled && !s.files().isEmpty()) return true;
         return false;

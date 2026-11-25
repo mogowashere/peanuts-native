@@ -469,6 +469,7 @@ public final class CheatsPage {
             case CheatSources.FROM_ZIP: return "From your zip";
             case CheatSources.FROM_FOLDER: return "From your folder";
             case CheatSources.FROM_EARLIER: return "Added earlier";
+            case CheatFolderSync.FROM_LINK: return "From your linked folder";
             default: return "From your file";
         }
     }
@@ -580,7 +581,9 @@ public final class CheatsPage {
             }
             rebuild();
         }));
-        if (s != null) d.setNeutralButton("Remove", (x, w) -> confirmRemove(a, m, s, p == null ? 0 : p.switchable()));
+        // a linked source comes back at the next sync if it is removed here: it is turned off here and removed where it was installed
+        if (s != null && CheatFolderSync.FROM_LINK.equals(s.from)) PUi.add(box, PUi.small(a, "To remove it, delete it in Eden Cheats Manager."), 12);
+        else if (s != null) d.setNeutralButton("Remove", (x, w) -> confirmRemove(a, m, s, p == null ? 0 : p.switchable()));
         AlertDialog ad = d.create();
         Feel.dialog(ad);
         ad.show();

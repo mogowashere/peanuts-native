@@ -34,9 +34,11 @@ public final class LibrarySettings {
     /** dev.peanuts.settings.ModsSection's "Install mod…" (ACTION_OPEN_DOCUMENT_TREE / ACTION_OPEN_DOCUMENT), public: the section lives in another
      *  package and only needs these two request codes, not any other picker here */
     public static final int REQ_MOD_FOLDER = 69, REQ_MOD_ZIP = 70;
+    /** Linked cheats folder's Pick a folder… (dev.peanuts.mods.CheatLink) */
+    static final int REQ_CHEAT_LINK = 74;
     private static final Handler UI = new Handler(Looper.getMainLooper());
     private static String fontsState;   // "Reading the firmware…" and what came of it, while the rows show
-    private static PUi.Setting gameRow, updateRow, dlcRow, keysRow, fontsRow, buildRow, companionsRow, hapticsRow, motionRow, swapRow, tvRow, bottomRow, gamesRow;
+    private static PUi.Setting gameRow, updateRow, dlcRow, keysRow, fontsRow, buildRow, companionsRow, hapticsRow, motionRow, swapRow, tvRow, bottomRow, gamesRow, cheatLinkRow;
     private static Activity rowsOf;
 
     private LibrarySettings() {}
@@ -65,6 +67,8 @@ public final class LibrarySettings {
         PUi.add(card, PUi.body(a, KEYS_FIRMWARE_GUIDANCE), 12);
         card.addView(new PUi.Setting(a, "🔄", "Rescan", Haptics.on(Haptics.Word.CLICK, v -> { Library.rescan(a); Toast.makeText(a, "Looking in the folders again", Toast.LENGTH_SHORT).show(); }))
                 .value("Reads the folders again").chevron(a).view);
+        cheatLinkRow = new PUi.Setting(a, "🔗", "Linked cheats folder", Haptics.on(Haptics.Word.TICK, v -> cheatLink(a))).chevron(a);
+        card.addView(cheatLinkRow.view);
         card.addView(new PUi.Setting(a, "🧹", "Free up space", Haptics.on(Haptics.Word.TICK, v -> freeUpSpace(a)))
                 .value("Delete original dumps of games already built").chevron(a).view);
         String played = dev.peanuts.launch.PlayTime.totalLine(a);   // the total play time of every game (dev.peanuts.launch.PlayTime), once one was played
@@ -164,6 +168,11 @@ public final class LibrarySettings {
         keysRow.value(keysValue(a));
         fontsRow.value(fontsValue(a, "Used by games and companions. Missing characters in Android's fonts can prevent a game from starting."));
         if (companionsRow != null) companionsRow.value(companionsValue(a));
+        if (cheatLinkRow != null) {
+            String link = PeanutsPrefs.cheatLinkDir(a);
+            cheatLinkRow.value(link == null ? "Off. Cheats another app (Eden Cheats Manager) puts here show in each game's Mods & Cheats."
+                    : PUi.joined(link, Environment.isExternalStorageManager() ? "cheats installed here show in Mods & Cheats" : "needs All files access"));
+        }
         if (hapticsRow != null) hapticsRow.value(PeanutsPrefs.hapticsOff(a) ? "Off. Tap to follow the system's touch feedback setting again."
                 : "System: follows Android's touch feedback setting. Tap to turn the app's own haptics off.");
         if (motionRow != null) motionRow.value(PeanutsPrefs.motionReduced(a) ? "Reduced: fades and progress only. Tap to follow the system's animation setting again."
@@ -208,7 +217,17 @@ public final class LibrarySettings {
     public static void resume(Activity a) {
         if (fontsState != null && fontsState.startsWith("Waiting for file access") && Environment.isExternalStorageManager()) fontsState = null;
         firmwareAfterAccess(a);
+        cheatLinkAfterAccess(a);
         refreshRows();
+    }
+
+    /** A linked cheats folder set before All files access was given: made and filled once the access is there (coming back from Android's access page) */
+    private static void cheatLinkAfterAccess(Activity a) {
+        String p = PeanutsPrefs.cheatLinkDir(a);
+        if (p == null || !Environment.isExternalStorageManager()) return;
+        File dir = new File(p);
+        if (dir.isDirectory() && new File(dir, dev.peanuts.mods.CheatLink.MANIFEST).isFile()) return;
+        if (dir.isDirectory() || dir.mkdirs()) Library.writeCheatLink(a);
     }
 
     static CharSequence fontsValue(Activity a, String none) {
@@ -302,6 +321,31 @@ public final class LibrarySettings {
                 }).setPositiveButton("Add folder…", (d, w) -> addBuildFolder(a)).setNegativeButton("Close", null).show();
     }
 
+    /** Linked cheats folder: Use PeanutsNative/load (made now), Pick a folder…, Off. In Eden Cheats Manager, pick the same load folder */
+    private static void cheatLink(Activity a) {
+        File def = dev.peanuts.mods.CheatLink.defaultDir();
+        String now = PeanutsPrefs.cheatLinkDir(a);
+        AlertDialog.Builder b = new AlertDialog.Builder(a).setTitle("Linked cheats folder")
+                .setMessage("Cheats that Eden Cheats Manager installs into this folder show in each game's Mods & Cheats, off until you switch them on. "
+                        + "In Eden Cheats Manager, select the same folder (it is named load)." + (now != null ? "\n\nNow: " + now : ""))
+                .setPositiveButton("Use PeanutsNative/load", (d, w) -> linkCheats(a, def.getPath()))
+                .setNeutralButton("Pick a folder…", (d, w) -> pickFolder(a, REQ_CHEAT_LINK, "Pick the load folder Eden Cheats Manager uses"));
+        if (now != null) b.setNegativeButton("Off", (d, w) -> { PeanutsPrefs.cheatLinkDir(a, null); refreshRows(); });
+        else b.setNegativeButton("Cancel", null);
+        b.show();
+    }
+
+    /** The linked folder set: made when missing, the library written into it, and All files access asked for when the app does not have it */
+    private static void linkCheats(Activity a, String path) {
+        PeanutsPrefs.cheatLinkDir(a, path);
+        refreshRows();
+        if (!Environment.isExternalStorageManager()) { askAccess(a, "The app needs All files access to read the cheats in " + path + ". Allow it, then come back."); return; }
+        File dir = new File(path);
+        if (!dir.isDirectory() && !dir.mkdirs()) { error(a, "The folder " + path + " could not be made. Make it with a file manager, then set it again."); return; }
+        Library.writeCheatLink(a);
+        Toast.makeText(a, "Linked. In Eden Cheats Manager, select " + path + ".", Toast.LENGTH_LONG).show();
+    }
+
     private static void updateBuildFolders(Activity a, List<String> dirs) {
         PeanutsPrefs.buildDirs(a, dirs);
         refreshRows();
@@ -314,6 +358,14 @@ public final class LibrarySettings {
         if (PackImportUi.result(a, request, result, data)) return true;   // the game sheet's Import pack… (72, 73)
         if (dev.peanuts.mods.CheatImportUi.result(a, request, result, data)) return true;   // Mods & Cheats' Add (83, 84 when it started the pick)
         if (dev.nxnative.android.CheatsBridge.result(a, request, result, data)) return true;   // Game settings › Cheat files: a cheat file, a folder, an export (83 to 86)
+        if (request == REQ_CHEAT_LINK) {
+            if (result != Activity.RESULT_OK || data == null || data.getData() == null) return true;
+            String p = Upstream.treeToPath(data.getData());
+            if (p == null) { error(a, "That folder is not on the phone's storage (a cloud provider, say). Pick one on the phone or its SD card."); return true; }
+            // Eden Cheats Manager takes only a folder named load: a folder of another name gets one inside it
+            linkCheats(a, new File(p).getName().equals("load") ? p : new File(p, "load").getPath());
+            return true;
+        }
         if (request < REQ_KEYS || request > REQ_MOD_ZIP) return false;
         if (result != Activity.RESULT_OK || data == null || data.getData() == null) return true;
         Uri u = data.getData();
